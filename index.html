@@ -141,7 +141,11 @@ function submitAbsen(mode) {
     })
   }).then(res => res.text()).then(txt => {
     console.log("Server response:", txt);
-    document.getElementById("status").innerText = "Absen berhasil: " + mode;
+    if (mode === "checkin") {
+      window.location.href = "sukses_checkin.html";
+    } else {
+      window.location.href = "sukses_checkout.html";
+    }
   }).catch(err => {
     alert("Gagal absen.");
     console.error(err);
