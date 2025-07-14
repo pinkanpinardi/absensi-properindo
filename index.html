@@ -101,12 +101,12 @@ function getLocation() {
 }
 
 const kantor = [
-  { lat: -6.187601, lng: 106.808368 },
-  { lat: -6.2080186, lng: 106.8234813 },
-  { lat: -6.2437667, lng: 106.9876178 }
+  { lat: -7.287905768969388, lng: 112.80398315187833 },
+  { lat: -7.293701642369461, lng: 112.81321546182262 },
+  { lat: -7.276825474204935, lng: 112.80491356921398 }
 ];
 
-function isWithinRadius(user, target, radius = 100) {
+function isWithinRadius(user, target, radius = 900) {
   const R = 6371000;
   const dLat = (target.lat - user.lat) * Math.PI / 180;
   const dLng = (target.lng - user.lng) * Math.PI / 180;
