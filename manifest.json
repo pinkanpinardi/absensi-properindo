@@ -1,7 +1,7 @@
 {
   "name": "Absensi Internship Properindo",
   "short_name": "Absensi Properindo",
-  "start_url": "absensi_nip_pwa.html",
+  "start_url": "index.html",
   "display": "standalone",
   "background_color": "#f8f9fa",
   "theme_color": "#0d6efd",
