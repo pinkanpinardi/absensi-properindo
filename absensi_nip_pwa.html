@@ -1,0 +1,124 @@
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Absensi Internship Properindo</title>
+  <link rel="manifest" href="manifest.json" />
+  <style>
+    body { font-family: sans-serif; padding: 20px; background: #f8f9fa; text-align: center; }
+    input, button { padding: 10px; margin: 5px; width: 80%; max-width: 300px; }
+    video, canvas, img { width: 80%; max-width: 320px; margin-top: 10px; border-radius: 8px; }
+    #status { color: green; margin-top: 10px; }
+  </style>
+</head>
+<body>
+  <h2>Absensi Internship</h2>
+  <h3>PT Properindo Enviro Tech</h3>
+
+  <input type="text" id="nip" placeholder="Masukkan NIP" /><br>
+  <button onclick="cekNIP()">Cek NIP</button>
+  <div id="info"></div>
+
+  <video id="video" autoplay playsinline></video><br>
+  <button onclick="takeSnapshot()">Ambil Foto</button>
+  <canvas id="canvas" style="display:none;"></canvas>
+  <img id="preview" /><br>
+
+  <p id="lokasiInfo">Mendeteksi lokasi...</p>
+  <button onclick="submitAbsen('checkin')">Check-In</button>
+  <button onclick="submitAbsen('checkout')">Check-Out</button>
+  <p id="status"></p>
+
+  <script>
+    let base64Image = "", userLocation = null;
+    let userData = null;
+
+    async function cekNIP() {
+      const nip = document.getElementById("nip").value;
+      const url = "https://script.google.com/macros/s/PASTE_WEB_APP_URL/exec?nip=" + nip;
+      const res = await fetch(url);
+      const data = await res.json();
+      if (data.nama) {
+        userData = data;
+        document.getElementById("info").innerHTML = `Nama: <b>${data.nama}</b><br>Email: ${data.email}`;
+        startCamera(); getLocation();
+      } else {
+        alert("NIP tidak ditemukan.");
+      }
+    }
+
+    async function startCamera() {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      document.getElementById("video").srcObject = stream;
+    }
+
+    function takeSnapshot() {
+      const video = document.getElementById("video");
+      const canvas = document.getElementById("canvas");
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      canvas.getContext("2d").drawImage(video, 0, 0);
+      base64Image = canvas.toDataURL("image/jpeg");
+      document.getElementById("preview").src = base64Image;
+    }
+
+    function getLocation() {
+      navigator.geolocation.getCurrentPosition(pos => {
+        userLocation = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+        document.getElementById("lokasiInfo").innerText = 
+          `Lokasi: ${userLocation.lat.toFixed(5)}, ${userLocation.lng.toFixed(5)}`;
+      }, () => alert("Gagal mendeteksi lokasi."));
+    }
+
+    const kantorLokasi = [
+      {lat: -7.287905768969388, lng: 112.80398315187833 },
+      { lat: -7.293701642369461, lng: 112.81321546182262 },
+      { lat: -7.276825474204935, lng: 112.80491356921398 }
+    ];
+
+    function isWithinRadius(user, target, radius = 100) {
+      const R = 6371000;
+      const dLat = (target.lat - user.lat) * Math.PI / 180;
+      const dLng = (target.lng - user.lng) * Math.PI / 180;
+      const a = Math.sin(dLat / 2) ** 2 +
+                Math.cos(user.lat * Math.PI / 180) *
+                Math.cos(target.lat * Math.PI / 180) *
+                Math.sin(dLng / 2) ** 2;
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+      return R * c <= radius;
+    }
+
+    function submitAbsen(mode) {
+      if (!userData || !base64Image || !userLocation) {
+        alert("Lengkapi semua data (NIP, foto, lokasi).");
+        return;
+      }
+
+      const dalamArea = kantor.some(loc => isWithinRadius(userLocation, loc));
+      if (!dalamArea) return alert("Anda di luar area kantor!");
+
+      fetch("https://script.google.com/macros/s/AKfycbz2U447T-dVU5g0pmWuJVdo3_Ag30YSTjZsbq1fth7XTze4ZWgb4qlgPeoqqbX9cN5tNQ/exec", {
+        method: "POST",
+        body: JSON.stringify({
+          nip: document.getElementById("nip").value,
+          mode: mode,
+          latitude: userLocation.lat,
+          longitude: userLocation.lng,
+          foto: base64Image
+        })
+      }).then(res => res.text()).then(txt => {
+        document.getElementById("status").innerText = "Absen berhasil: " + mode;
+      }).catch(err => {
+        alert("Gagal absen.");
+        console.error(err);
+      });
+    }
+
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('service-worker.js');
+    }
+  </script>
+</body>
+</html>
