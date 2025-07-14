@@ -1,0 +1,33 @@
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Berhasil Check-In</title>
+  <style>
+    body { font-family: sans-serif; background: #e6ffee; text-align: center; padding: 100px; }
+    h1 { color: green; font-size: 2rem; }
+    p { font-size: 1.2rem; margin-top: 20px; }
+  </style>
+</head>
+<body>
+  <h1>✅ Anda berhasil Check-In!</h1>
+  <p id="telat"></p>
+  <script>
+    const sekarang = new Date();
+    const batasWaktu = new Date();
+    batasWaktu.setHours(9, 0, 0, 0); // Jam 09.00 WIB
+
+    if (sekarang > batasWaktu) {
+      const telatMs = sekarang - batasWaktu;
+      const telatMenit = Math.floor(telatMs / 60000);
+      const jam = Math.floor(telatMenit / 60);
+      const menit = telatMenit % 60;
+
+      document.getElementById("telat").innerText = 
+        `⏰ Anda telat ${jam > 0 ? jam + " jam " : ""}${menit} menit.`;
+    }
+  </script>
+</body>
+</html>
