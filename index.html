@@ -14,8 +14,9 @@
   <style>
     body { font-family: sans-serif; padding: 20px; background: #f8f9fa; text-align: center; }
     input, button { padding: 10px; margin: 5px; width: 80%; max-width: 300px; }
+    button:disabled { opacity: 0.6; cursor: not-allowed; }
     video, canvas, img { width: 80%; max-width: 320px; margin-top: 10px; border-radius: 8px; }
-    #video { transform: scaleX(1); } /* Tidak mirror */
+    #video { transform: scaleX(1); }
     #status { color: green; margin-top: 10px; }
   </style>
 </head>
@@ -33,11 +34,9 @@
   <img id="preview" /><br>
 
   <p id="lokasiInfo">Mendeteksi lokasi...</p>
-  <button onclick="submitAbsen('checkin')">Check-In</button>
-  <button onclick="submitAbsen('checkout')">Check-Out</button>
+  <button id="checkinBtn" onclick="submitAbsen('checkin')">Check-In</button>
+  <button id="checkoutBtn" onclick="submitAbsen('checkout')">Check-Out</button>
   <p id="status"></p>
-  
-  <footer>© HRD PT Properindo Enviro Tech 2025</footer>
 
 <script>
 let base64Image = "", userLocation = null, userData = null;
@@ -127,11 +126,23 @@ function submitAbsen(mode) {
     return;
   }
 
+  const today = new Date().toISOString().slice(0, 10);
+  if (mode === "checkin" && localStorage.getItem("checkin_" + today)) {
+    alert("Anda sudah melakukan check-in hari ini.");
+    return;
+  }
+
   const dalamArea = kantor.some(loc => isWithinRadius(userLocation, loc));
   if (!dalamArea) {
     alert("Anda berada di luar area kantor!");
     return;
   }
+
+  const checkinBtn = document.getElementById("checkinBtn");
+  const checkoutBtn = document.getElementById("checkoutBtn");
+  checkinBtn.disabled = true;
+  checkoutBtn.disabled = true;
+  document.getElementById("status").innerText = "⏳ Mengirim data absensi...";
 
   fetch("https://script.google.com/macros/s/AKfycbz2U447T-dVU5g0pmWuJVdo3_Ag30YSTjZsbq1fth7XTze4ZWgb4qlgPeoqqbX9cN5tNQ/exec", {
     method: "POST",
@@ -145,12 +156,15 @@ function submitAbsen(mode) {
   }).then(res => res.text()).then(txt => {
     console.log("Server response:", txt);
     if (mode === "checkin") {
+      localStorage.setItem("checkin_" + today, "done");
       window.location.href = "sukses_checkin.html";
     } else {
       window.location.href = "sukses_checkout.html";
     }
   }).catch(err => {
     alert("Gagal absen.");
+    checkinBtn.disabled = false;
+    checkoutBtn.disabled = false;
     console.error(err);
   });
 }
