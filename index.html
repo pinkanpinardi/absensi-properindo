@@ -128,7 +128,11 @@ function submitAbsen(mode) {
 
   const today = new Date().toISOString().slice(0, 10);
   if (mode === "checkin" && localStorage.getItem("checkin_" + today)) {
-    alert("Anda sudah melakukan check-in hari ini.");
+  alert("Anda sudah melakukan check-in hari ini.");
+  return;
+  }
+  if (mode === "checkout" && localStorage.getItem("checkout_" + today)) {
+    alert("Anda sudah melakukan check-out hari ini.");
     return;
   }
 
@@ -156,11 +160,12 @@ function submitAbsen(mode) {
   }).then(res => res.text()).then(txt => {
     console.log("Server response:", txt);
     if (mode === "checkin") {
-      localStorage.setItem("checkin_" + today, "done");
-      window.location.href = "sukses_checkin.html";
-    } else {
-      window.location.href = "sukses_checkout.html";
-    }
+    localStorage.setItem("checkin_" + today, "done");
+    window.location.href = "sukses_checkin.html";
+  } else {
+    localStorage.setItem("checkout_" + today, "done");
+    window.location.href = "sukses_checkout.html";
+  }
   }).catch(err => {
     alert("Gagal absen.");
     checkinBtn.disabled = false;
